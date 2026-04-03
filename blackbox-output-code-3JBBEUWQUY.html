@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluorite API Key Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #333;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="password"], input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="password"]:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(86, 171, 47, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 65, 108, 0.3);
+        }
+
+        .key-display {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .auth-section, .key-section {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🔑 Fluorite Key Manager</h1>
+            <p>Secure API Key Management</p>
+        </div>
+
+        <!-- Authentication Section -->
+        <div id="authSection">
+            <div class="form-group">
+                <label for="masterKey">Master Key</label>
+                <input type="password" id="masterKey" placeholder="Enter master authentication key">
+            </div>
+            <button class="btn btn-primary" onclick="authenticate()">Authenticate & Access</button>
+            <div id="authStatus" class="status hidden"></div>
+        </div>
+
+        <!-- Key Management Section -->
+        <div id="keySection" class="hidden">
+            <div class="status info">Authenticated successfully! Manage your Fluorite API keys below.</div>
+            
+            <div class="form-group">
+                <label>Current API Key</label>
+                <div class="key-display" id="currentKey">No key loaded</div>
+            </div>
+
+            <button class="btn btn-success" onclick="generateKey()">Generate New Key</button>
+            <button class="btn btn-danger" onclick="resetKey()">Reset Current Key</button>
+            
+            <div class="form-group">
+                <label for="newKeyName">Key Name (Optional)</label>
+                <input type="text" id="newKeyName" placeholder="e.g., Production Key">
+            </div>
+
+            <button class="btn btn-primary" onclick="logout()">Logout</button>
+            
+            <div id="keyStatus" class="status hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        // Secure storage using localStorage with encryption simulation
+        const MASTER_KEY_HASH = 'fluorite_master_2024_v1'; // In production, use proper server-side hash
+        const STORAGE_KEY = 'fluorite_api_keys';
+        
+        let currentUserKey = null;
+        let isAuthenticated = false;
+
+        // Generate secure random API key
+        function generateSecureKey(length = 64) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+            let result = '';
+            const randomBytes = new Uint8Array(length);
+            crypto.getRandomValues(randomBytes);
+            
+            for (let i = 0; i < length; i++) {
+                result += chars[randomBytes[i] % chars.length];
+            }
+            return `fluorite_${result}`;
+        }
+
+        // Authenticate user
+        function authenticate() {
+            const masterKey = document.getElementById('masterKey').value.trim();
+            const statusEl = document.getElementById('authStatus');
+            
+            if (!masterKey) {
+                showStatus(statusEl, 'Please enter master key', 'error');
+                return;
+            }
+
+            // Simple hash check (use proper server-side auth in production)
+            const keyHash = btoa(masterKey).slice(0, 16);
+            if (keyHash === MASTER_KEY_HASH) {
+                isAuthenticated = true;
+                document.getElementById('authSection').classList.add('hidden');
+                document.getElementById('keySection').classList.remove('hidden');
+                loadCurrentKey();
+                showStatus(statusEl, 'Authentication successful!', 'success');
+            } else {
+                showStatus(statusEl, 'Invalid master key', 'error');
+                document.getElementById('masterKey').value = '';
+            }
+        }
+
+        // Load current key from storage
+        function loadCurrentKey() {
+            const keys = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            currentUserKey = keys[MASTER_KEY_HASH] || null;
+            const keyEl = document.getElementById('currentKey');
+            
+            if (currentUserKey) {
+                keyEl.textContent = currentUserKey;
+            } else {
+                keyEl.textContent = 'No key generated yet';
+            }
+        }
+
+        // Generate new API key
+        async function generateKey() {
+            const keyName = document.getElementById('newKeyName').value.trim();
+            const statusEl = document.getElementById('keyStatus');
+            
+            showStatus(statusEl, 'Generating secure API key...', 'info');
+            
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const newKey = generateSecureKey();
+            const keys = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            keys[MASTER_KEY_HASH] = newKey;
+            
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
+            currentUserKey = newKey;
+            
+            document.getElementById('currentKey').textContent = newKey;
+            document.getElementById('newKeyName').value = '';
+            
+            showStatus(statusEl, `New API key generated successfully! ${keyName ? `Named: ${keyName}` : ''}`, 'success');
+            
+            // Auto-copy to clipboard
+            navigator.clipboard.writeText(newKey).then(() => {
+                showStatus(statusEl, 'Key copied to clipboard!', 'success');
+            });
+        }
+
+        // Reset current key
+        function resetKey() {
+            const statusEl = document.getElementById('keyStatus');
+            
+            if (confirm('Are you sure you want to reset the current API key? This cannot be undone.')) {
+                const keys = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                delete keys[MASTER_KEY_HASH];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
+                
+                currentUserKey = null;
+                document.getElementById('currentKey').textContent = 'Key reset - generate a new one';
+                showStatus(statusEl, 'API key reset successfully!', 'success');
+            }
+        }
+
+        // Logout
+        function logout() {
+            isAuthenticated = false;
+            currentUserKey = null;
+            document.getElementById('keySection').classList.add('hidden');
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('masterKey').value = '';
+            document.getElementById('authStatus').classList.add('hidden');
+            document.getElementById('keyStatus').classList.add('hidden');
+        }
+
+        // Show status message
+        function showStatus(element, message, type) {
+            element.textContent = message;
+            element.className = `status ${type}`;
+            element.classList.remove('hidden');
+            
+            // Auto-hide success/info messages
+            if (type !== 'error') {
+                setTimeout(() => {
+                    element.classList.add('hidden');
+                }, 5000);
+            }
+        }
+
+        // Allow Enter key for authentication
+        document.getElementById('masterKey').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                authenticate();
+            }
+        });
+
+        // Add copy functionality to current key
+        document.getElementById('currentKey').addEventListener('click', function() {
+            if (currentUserKey) {
+                navigator.clipboard.writeText(currentUserKey).then(() => {
+                    const rect = this.getBoundingClientRect();
+                    // Visual feedback
+                    this.style.background = '#e8f5e8';
+                    setTimeout(() => {
+                        this.style.background = '';
+                    }, 1000);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
